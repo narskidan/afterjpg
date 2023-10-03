@@ -1,0 +1,30 @@
+#!python3
+
+import sys
+
+if len(sys.argv) < 2:
+    print('Usage:')
+    print('  extrajpg [filename]')
+    sys.exit(1)
+
+def bprint(raw_binary):
+    # Gratias a delightful thread from comp.lang.python (2010):
+    # groups.google.com/g/comp.lang.python/c/xqkQby5MsAg
+
+    # I still have no idea why flushing buffers matters at all
+    sys.stdout.flush()
+    sys.stdout.buffer.write(raw_binary)
+
+end_of_image = b'\xff\xd9'
+
+with open(sys.argv[1], "rb") as image_file:
+    contents = image_file.read()
+    eoi_index = contents.find(end_of_image)
+    appended_data_index = eoi_index + len(end_of_image)
+    appended_content = contents[appended_data_index:]
+
+    if len(appended_content) == 0:
+        # Creative reinterpretation of FileNotFoundError!
+        raise FileNotFoundError('No data appended to JPEG!')
+    
+    bprint(appended_content)
